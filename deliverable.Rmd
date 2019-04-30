@@ -1,7 +1,7 @@
 ---
 title: "Practice CA, MCA and Clustering"
 author: "Marc Mendez & Joel Cantero"
-date: "7 de abril de 2019"
+date: "30 de abril de 2019"
 output:
   pdf_document: default
   html_document: default
@@ -18,7 +18,7 @@ library(fpc)
 setwd("~/Desktop/UPC 18:19/S2 18:19/MVA/Homework 4")
 ```
 ##1. Read the PCA_quetaltecaen data.
-```{r}
+```{r initial}
 quetal <- read_delim("PCA_quetaltecaen.txt","\t", escape_double = FALSE, trim_ws = TRUE)
 names(quetal)[7]<- "madrilenos"
 quetal.data <- quetal[-1]
@@ -110,11 +110,11 @@ quetal.diagIntertia.2 <- quetal.sumDiag.2*100/quetal.totalIntertia.2
 
 ```{r}
 ca.quetal.2 = CA(quetal.data.2)
-fviz_ca_biplot(ca.df2, repel = TRUE)
+fviz_ca_biplot(ca.quetal.2, repel = TRUE)
 ```
 
 ```{r}
-t2 = as.data.frame(ca.df2$eig)
+t2 = as.data.frame(ca.quetal.2$eig)
 (eigenv2 = t2$eigenvalue)
 eigenVec2 = t2$`percentage of variance`
 
@@ -249,8 +249,11 @@ text(k_def$centers,labels=c("G1","G2", "G3", "G4"),col="white", face="bold")
 ##11. Using the function catdes interpret and name the obtained clusters and represent them in the first factorial display.
 
 ```{r}
-clusters_interpretation <- catdes(cbind(as.factor(k_def$cluster), imputedX[-11,]),1, 0.05)
-plot(clusters_interpretation)
-plot(pca$ind$coord, col=k_def$cluster)
+a <- catdes(cbind(as.factor(k_def$cluster),mca_car),1, 0.05)
+a$quanti
+plot(a)
+
+plot(df.mca$ind$coord, col=k_def$cluster)
+
 ```
 

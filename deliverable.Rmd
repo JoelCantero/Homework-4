@@ -52,66 +52,64 @@ abline(h=0.002, col="red")
 sum(x.eigenVec[1:3])
 ```
 
-##3. For the PCA_quetaltecaen data, compute the contribution of each cell to the total inertia, that is: (fij - fi.x f.j)^2/(fi.x f.j). Compute the percentage of inertia due to the diagonal cells.
+##3. For the PCA_quetaltecaen data, compute the contribution of each cell to the total inertia, that is: (fij - f.i x f.j)^2/(fi.x f.j). Compute the percentage of inertia due to the diagonal cells.
 ```{r}
-computeIntertiaPerCell <- function(K){
-    F = K/sum(K)
-    fi = rowSums(F)
-    fj = colSums(F)
+intertiaOfEachCell <- function(data){
+    f <- data/sum(data)
+    fi <- rowSums(f)
+    fj <- colSums(f)
     
-    contrib_cell = (F)
-    # Contribution per cell to the total intertia
-    for (i in seq(1, nrow(F))) {
-        for(j in seq(1, ncol(F))) {
-            
-            prod = (fi[i] * fj[j])
-            contrib_cell[i, j] = (((F[i, j] - prod)^2)/prod)
+    contribution <- (f)
+    
+    for (i in seq(1, nrow(f))) {
+        for(j in seq(1, ncol(f))) {
+            temp <- (fi[i] * fj[j])
+            contribution[i, j] <- (((f[i, j] - temp)^2)/temp)
         }
     }
-    return(contrib_cell)
+    return(contribution)
 }
-contrib_cell = computeIntertiaPerCell(quetal.data)
+quetal.intertiaCell <- intertiaOfEachCell(quetal.data)
 ```
 
 
 ```{r}
-totalInertia = sum(contrib_cell)
-totalEigenVal = sum(x.eigenV)
+quetal.totalIntertia <- sum(quetal.intertiaCell)
+totalEigenV <- sum(x.eigenV)
 ```
 
 ```{r}
-sumDiagInertia = sum(diag(as.matrix(contrib_cell)))
-(diagInertia = sumDiagInertia*100/totalInertia)
+quetal.sumDiag <- sum(diag(as.matrix(quetal.intertiaCell)))
+quetal.diagIntertia <- quetal.sumDiag*100/quetal.totalIntertia
 ```
 
 ##4. Clearly, the overloaded diagonal of the data set influences the results obtained (the overall inertia is mainly due to this overload diagonal). Try to nullify this influence by imputing the diagonal values by the independence hypothesis values of the product of marginal probabilities (=n x fi.x f.j). Take into account that each imputation modifies the marginal, hence you need an iterative algorithm.
 
 ```{r}
-df_2 = df
+quetal.data.2 = quetal.data
 for (x in seq(1, 10)) {
-  for (x in seq(1, nrow(df_2))) {
-    n = sum(df_2)
-    F2 = df_2/n
-    fi2 = rowSums(F2)
-    fj2 = colSums(F2)
-    df_2[x,x] <- n * fi2[x] * fj2[x]    
+  for (x in seq(1, nrow(quetal.data.2))) {
+    n <- sum(quetal.data.2)
+    f2 <- quetal.data.2/n
+    fi2 <- rowSums(f2)
+    fj2 <- colSums(f2)
+    quetal.data.2[x,x] <- n * fi2[x] * fj2[x]    
   }
 }
 
 ```
 
 ```{r}
-contribs = computeIntertiaPerCell(df_2)
-totalInertia2 = sum(contribs)
-sumDiagInertia2 = sum(diag(as.matrix(contribs)))
-(diagInertia2 = sumDiagInertia2*100/totalInertia2)
+quetal.intertiaCell.2 <- intertiaOfEachCell(quetal.data.2)
+quetal.totalIntertia.2 <- sum(quetal.intertiaCell.2)
+quetal.sumDiag.2 <- sum(diag(as.matrix(quetal.intertiaCell.2)))
+quetal.diagIntertia.2 <- quetal.sumDiag.2*100/quetal.totalIntertia.2
 ```
 
 ##5. Perform a new CA upon the quetaltecaen table, with the modified diagonal and interpret the results.
 
 ```{r}
-
-ca.df2 = CA(df_2)
+ca.quetal.2 = CA(quetal.data.2)
 fviz_ca_biplot(ca.df2, repel = TRUE)
 ```
 
@@ -126,13 +124,133 @@ totalEigenVal2 = sum(eigenv2)
 
 ##6. Read the file ???mca_car.csv??? containing the data and its dictionary about the cars and their characteristics found in specialized magazines. The final goal will be to find a model to predict the price of cars as function of its characteristics. First we will perform a visualization of the information contained in the dataset, then we will perform a clustering of cars. The data has been previously preprocessed to have it in categorical form.
 
+```{r}
+car <- read.csv("mca_car.csv", sep=";")
+car.data <- car[-1]
+row.names(car.data) <- car$iden
+summary(car.data)
+car.data$precio <- as.numeric(car.data$precio)
+```
+
+
+
 ##7. With the obtained data frame perform a Multiple Correspondence Analysis. Take the brand and price (either categorical or continuous) as supplementary variables, whereas the remaining ones are active.
+
+```{r}
+mca.car <- MCA(car.data, ncp = 19,  quali.sup = c(18), quanti.sup = c(17), graph=FALSE)
+```
+
+
+```{r}
+fviz_mca_var(mca.car, choice = "mca.cor", 
+             repel = TRUE, # Avoid text overlapping (slow)
+             ggtheme = theme_minimal())
+
+```
+
+
+```{r}
+fviz_mca(mca.car)
+```
+
 
 ##8. Interpret the first two obtained factors.
 
 ##9. Decide the number of significant dimensions that you retain (by subtracting the average eigenvalue and represent the new obtained eigenvalues in a new screeplot).
 
+```{r}
+eigen_values <- as.data.frame(df.mca$eig)$eigenvalue
+mean_eigen <- mean(eigen_values)
+eigen_values <- eigen_values[as.data.frame(df.mca$eig)$eigenvalue > mean_eigen]
+eigen_values <- eigen_values - mean_eigen
+```
+
+
+```{r}
+eig_vals = eigen_values/sum(eigen_values)
+eig_df = as.data.frame(cbind(eig_vals, X = seq(length(eig_vals))))
+```
+
+```{r}
+ggplot(eig_df, aes(x=X, y=eig_vals)) +
+    geom_line(size=0.3) +
+    geom_point(aes(size = eig_vals, colour = eig_vals)) + 
+    ggtitle("Dimensions' significance") +
+    ylab("Significance") +
+    xlab("Dimension index") +
+    theme(plot.title = element_text(lineheight=.8, face="bold")) 
+
+```
+
+
+```{r}
+cumSum = cumsum(100*eigen_values/sum(eigen_values))
+cumSumDF = as.data.frame(cbind(cumSum, X = seq(length(cumSum))))
+
+
+ggplot(cumSumDF, aes(x=X, y=cumSum)) +
+    #geom_area() + 
+    geom_line(size=0.3) +
+    #geom_point(aes(size = cumSum, colour = cumSum)) + 
+    ggtitle("Dimensions' significance cumulative sum") +
+    ylab("Cumulative significance") +
+    xlab("Dimension index") +
+   theme(plot.title = element_text(lineheight=.8, face="bold")) +
+    geom_hline(yintercept = 90, color = "red", size = 0.3) + # Threshold
+    geom_vline(xintercept = 9, color = "blue", size=0.7)
+```
+
+
 ##10. Perform a hierarchical clustering with the significant factors, decide the number of final classes to obtain and perform a consolidation operation of the clustering.
+
+```{r}
+Psi <- as.matrix(df.mca$ind$coord[, 1:nd])
+dist_matrix = dist(Psi)
+cluster <- hclust(dist_matrix, method='ward.D2')
+barplot(cluster$height)
+```
+
+```{r}
+number_clusters = 4
+c1 <- cutree(cluster, number_clusters)
+plot(Psi,type="n",main="Clustering of cars in 4 classes")
+text(Psi,col=c1,labels=rownames(Psi),cex = 0.6)
+legend("bottomright",c("c1","c2","c3","c4"),pch=20,col=c(1:4))
+```
+
+```{r}
+colors = hsv(c(0.6, 0.95, 0.1, 0.3), 1, 0.8, 1)
+dend <- as.dendrogram(cluster)
+dend <- dend %>%
+    color_branches(k = number_clusters, col=colors) %>%
+    set("branches_lwd", c(2,1,2)) %>%
+    set("branches_lty", c(1,2,1))
+
+plot(dend)
+cdg <- aggregate(Psi,list(c1),mean)[,2:(nd+1)]
+
+```
+
+```{r}
+# And consolidate the clustering using k-means
+# to avoid overlapping conditions between successive nodes
+k_def <- kmeans(Psi,centers=cdg)
+
+# SAME AS BEFORE
+plot(Psi,type="n",main="Clustering of cars in 4 classes")
+text(Psi,col=k_def$cluster,labels=rownames(Psi),cex = 0.6)
+abline(h=0,v=0,col="gray")
+legend("bottomright",c("c1","c2","c3","c4"),pch=20,col=c(1:4))
+text(k_def$centers,labels=c("G1","G2", "G3", "G4"),col="white", face="bold")
+
+```
 
 
 ##11. Using the function catdes interpret and name the obtained clusters and represent them in the first factorial display.
+
+```{r}
+clusters_interpretation <- catdes(cbind(as.factor(k_def$cluster), imputedX[-11,]),1, 0.05)
+plot(clusters_interpretation)
+plot(pca$ind$coord, col=k_def$cluster)
+```
+

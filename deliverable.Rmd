@@ -75,21 +75,25 @@ intertiaOfEachCell <- function(data){
 quetal.intertiaCell <- intertiaOfEachCell(quetal.data)
 ```
 
-
+For doing this we will create a function that calculates the total intertia of each cell as, later on we will need to do it again. We do it that way because with the inertia of each cell, then we can calculate the total of rows and columns. To check if the values are correct we will compare the sum of the total inertia to the eigen values which will have to be the same.
 ```{r}
 quetal.totalIntertia <- sum(quetal.intertiaCell)
 totalEigenV <- sum(x.eigenV)
+quetal.totalIntertia
+totalEigenV
 ```
-
+As we can see are the same so the computation was made correctly. Moreover, we need to calculate the percentatge inertia that comes from the diagonal cells.
 ```{r}
 quetal.sumDiag <- sum(diag(as.matrix(quetal.intertiaCell)))
 quetal.diagIntertia <- quetal.sumDiag*100/quetal.totalIntertia
 ```
+In our case the percentatge of information that contains the diagonal is way too much so in the next part we will try to nullify it.
 
 ##4. Clearly, the overloaded diagonal of the data set influences the results obtained (the overall inertia is mainly due to this overload diagonal). Try to nullify this influence by imputing the diagonal values by the independence hypothesis values of the product of marginal probabilities (=n x fi.x f.j). Take into account that each imputation modifies the marginal, hence you need an iterative algorithm.
 
+
 ```{r}
-quetal.data.2 = quetal.data
+quetal.data.2 <- quetal.data
 for (x in seq(1, 10)) {
   for (x in seq(1, nrow(quetal.data.2))) {
     n <- sum(quetal.data.2)

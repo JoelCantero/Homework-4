@@ -15,11 +15,12 @@ library(dendextend)
 library(calibrate)
 library(factoextra)
 library(fpc)
-setwd("~/Desktop/UPC 18:19/S2 18:19/MVA/Homework 4")
+
 ```
 ##1. Read the PCA_quetaltecaen data.
 ```{r initial}
-quetal <- read_delim("PCA_quetaltecaen.txt","\t", escape_double = FALSE, trim_ws = TRUE)
+setwd("~/Desktop/UPC 18:19/S2 18:19/MVA/Homework 4")
+quetal <- read.delim("PCA_quetaltecaen.txt","\t", header = TRUE)
 names(quetal)[7]<- "madrilenos"
 quetal.data <- quetal[-1]
 row.names(quetal.data) <- quetal$CCAA
@@ -172,9 +173,9 @@ fviz_mca(mca.car)
 ##9. Decide the number of significant dimensions that you retain (by subtracting the average eigenvalue and represent the new obtained eigenvalues in a new screeplot).
 
 ```{r}
-eigen_values <- as.data.frame(df.mca$eig)$eigenvalue
+eigen_values <- as.data.frame(mca.car$eig)$eigenvalue
 mean_eigen <- mean(eigen_values)
-eigen_values <- eigen_values[as.data.frame(df.mca$eig)$eigenvalue > mean_eigen]
+eigen_values <- eigen_values[as.data.frame(mca.car$eig)$eigenvalue > mean_eigen]
 eigen_values <- eigen_values - mean_eigen
 ```
 
@@ -217,7 +218,7 @@ ggplot(cumSumDF, aes(x=X, y=cumSum)) +
 ##10. Perform a hierarchical clustering with the significant factors, decide the number of final classes to obtain and perform a consolidation operation of the clustering.
 
 ```{r}
-Psi <- as.matrix(df.mca$ind$coord[, 1:nd])
+Psi <- as.matrix(mca.car$ind$coord[, 1:4])
 dist_matrix = dist(Psi)
 cluster <- hclust(dist_matrix, method='ward.D2')
 barplot(cluster$height)
@@ -240,7 +241,7 @@ dend <- dend %>%
     set("branches_lty", c(1,2,1))
 
 plot(dend)
-cdg <- aggregate(Psi,list(c1),mean)[,2:(nd+1)]
+cdg <- aggregate(Psi,list(c1),mean)[,2:(4+1)]
 
 ```
 
@@ -262,11 +263,11 @@ text(k_def$centers,labels=c("G1","G2", "G3", "G4"),col="white", face="bold")
 ##11. Using the function catdes interpret and name the obtained clusters and represent them in the first factorial display.
 
 ```{r}
-a <- catdes(cbind(as.factor(k_def$cluster),mca_car),1, 0.05)
+a <- catdes(cbind(as.factor(k_def$cluster),car),1, 0.05)
 a$quanti
 plot(a)
 
-plot(df.mca$ind$coord, col=k_def$cluster)
+plot(mca.car$ind$coord, col=k_def$cluster)
 
 ```
 

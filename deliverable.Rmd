@@ -86,12 +86,13 @@ As we can see are the same so the computation was made correctly. Moreover, we n
 ```{r}
 quetal.sumDiag <- sum(diag(as.matrix(quetal.intertiaCell)))
 quetal.diagIntertia <- quetal.sumDiag*100/quetal.totalIntertia
+quetal.diagIntertia
 ```
-In our case the percentatge of information that contains the diagonal is way too much so in the next part we will try to nullify it.
+In our case the percentatge of information that contains the diagonal is way too much(74%) so in the next part we will try to nullify it.
 
 ##4. Clearly, the overloaded diagonal of the data set influences the results obtained (the overall inertia is mainly due to this overload diagonal). Try to nullify this influence by imputing the diagonal values by the independence hypothesis values of the product of marginal probabilities (=n x fi.x f.j). Take into account that each imputation modifies the marginal, hence you need an iterative algorithm.
 
-
+To nullify the overloaded diagonal we will apply the method seen in class. It is something similar to what we can see under this paragraph. 
 ```{r}
 quetal.data.2 <- quetal.data
 for (x in seq(1, 10)) {
@@ -106,28 +107,30 @@ for (x in seq(1, 10)) {
 
 ```
 
+Once the diagonal is nullified, try to calculate the inertia again and see if the diagonal is still overloaded or the problem its solved.
 ```{r}
 quetal.intertiaCell.2 <- intertiaOfEachCell(quetal.data.2)
 quetal.totalIntertia.2 <- sum(quetal.intertiaCell.2)
 quetal.sumDiag.2 <- sum(diag(as.matrix(quetal.intertiaCell.2)))
 quetal.diagIntertia.2 <- quetal.sumDiag.2*100/quetal.totalIntertia.2
+quetal.diagIntertia.2
 ```
-
+As we can see the value is much lower than before so the diagonal is not overloaded and the problem its solved.
 ##5. Perform a new CA upon the quetaltecaen table, with the modified diagonal and interpret the results.
 
 ```{r}
-ca.quetal.2 = CA(quetal.data.2)
-fviz_ca_biplot(ca.quetal.2, repel = TRUE)
+ca.quetal.2 <- CA(quetal.data.2)
 ```
+The first thing we can clearly see is the relation of the CCAA with themselves is quite different than before. In the first CA, the relation of a CCAA with itself was huge, now that the diagonal is modified shows other results that are not biased by the selfrelation that we had before.
 
-```{r}
-t2 = as.data.frame(ca.quetal.2$eig)
-(eigenv2 = t2$eigenvalue)
-eigenVec2 = t2$`percentage of variance`
+If we analyze deeper, catalanes and vascos are far from the center of the cloud, which means that people from other CCAA don't like neither of them.
 
-totalEigenVal2 = sum(eigenv2)
-```
+But we can say that catalan people like vascos, and Valencia and Euzkadi like catalanes.
 
+The cloud of points is quite big but there is no clear difference apart from Catalunya and Euzkadi, which means that all the other CCAA get along well with each other.
+
+This makes sense with the reality as Catalonia and Euzkadi have deep country feeling that is not shared with any other CCAA. We know that they are the communities that want the independece from Spain and this is probably the fact that make this 2 communities get allong well. 
+We could also try to explain whit Valencia as they share language with catalonia(more or less), so this can make them have good relation. 
 
 ##6. Read the file ???mca_car.csv??? containing the data and its dictionary about the cars and their characteristics found in specialized magazines. The final goal will be to find a model to predict the price of cars as function of its characteristics. First we will perform a visualization of the information contained in the dataset, then we will perform a clustering of cars. The data has been previously preprocessed to have it in categorical form.
 

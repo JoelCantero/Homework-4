@@ -141,10 +141,11 @@ row.names(car.data) <- car$iden
 summary(car.data)
 car.data$precio <- as.numeric(car.data$precio)
 ```
-
+The first step is to read the data. This data had a wrong charachter that made a row have strange results. After solving this we will change precio as numeric row that has the price of a car. Then, once the data is currently prepared we will start to visualize it through a MCA. This will show us information about the importance of each feature to each dimension.
 
 
 ##7. With the obtained data frame perform a Multiple Correspondence Analysis. Take the brand and price (either categorical or continuous) as supplementary variables, whereas the remaining ones are active.
+To do the MCA, first we need to set Brand(column 18) and Price(column 17) as suplementary variables. After it we will execute MCA function to perform the anlaysis and see the impacto from each one of the features compared to dimensions 1 and 2.
 
 ```{r}
 mca.car <- MCA(car.data, ncp = 19,  quali.sup = c(18), quanti.sup = c(17), graph=FALSE)
@@ -153,11 +154,13 @@ mca.car <- MCA(car.data, ncp = 19,  quali.sup = c(18), quanti.sup = c(17), graph
 
 ```{r}
 fviz_mca_var(mca.car, choice = "mca.cor", 
-             repel = TRUE, # Avoid text overlapping (slow)
+             repel = TRUE,
              ggtheme = theme_minimal())
 
 ```
 
+In this graphic we can see that only 25% of the information retained is explained by the first 2 dimensions, so this means there are other a lot of aspects are not explained by these 2 dimensions.
+Another thing we have to see here is that potencia, cilindrada, consumo/costeKm are the ones which have more impact on the price. Makes sense as the most expensive cars usually have good engines.
 
 ```{r}
 fviz_mca(mca.car)
